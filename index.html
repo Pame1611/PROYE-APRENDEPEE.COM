@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APRENDEPEE.COM | Domina Power BI, Excel y Datos - Plataforma de Educación Online</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 6 CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Google Fonts: Inter / Udemy-like typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            udemy: {
+              purple: '#a435f0',
+              purpleHover: '#8710d8',
+              dark: '#1c1d1f',
+              grayBg: '#f7f9fa',
+              border: '#d1d7dc',
+              gold: '#b4690e',
+              star: '#e59819',
+              bestseller: '#eceb98',
+              bestsellerText: '#3d3c0a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: #1c1d1f;
+      background-color: #f7f9fa;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c1c7cd;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8710d8;
+    }
+
+    @keyframes pulsePlay {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.08);
+      }
+    }
+
+    .animate-pulse-play {
+      animation: pulsePlay 2s infinite ease-in-out;
+    }
+  </style>
+  <!-- Supabase SDK CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="min-h-screen flex flex-col bg-udemy-grayBg text-udemy-dark">
+
+  <!-- ==================== 1. NAVBAR GLOBAL (ESTILO UDEMY) ==================== -->
+  <header class="sticky top-0 z-40 bg-white border-b border-udemy-border shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3 flex items-center justify-between gap-3 md:gap-6">
+
+      <!-- Logo alineado a la izquierda -->
+      <div class="flex items-center gap-4 shrink-0">
+        <button onclick="navigateTo('landing')" class="flex items-center gap-2 text-left group focus:outline-none">
+          <div
+            class="w-9 h-9 rounded bg-udemy-purple flex items-center justify-center text-white font-extrabold text-xl shadow-sm group-hover:bg-udemy-purpleHover transition">
+            A
+          </div>
+          <div>
+            <span class="text-xl font-extrabold tracking-tight text-udemy-dark">APRENDE<span
+                class="text-udemy-purple">PEE</span></span>
+            <span
+              class="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-udemy-purple px-1.5 py-0.5 rounded ml-1">.COM</span>
+          </div>
+        </button>
+
+        <button onclick="navigateTo('landing')"
+          class="hidden lg:inline-block text-sm font-medium text-gray-700 hover:text-udemy-purple transition">
+          Categorías
+        </button>
+      </div>
+
+      <!-- Barra de búsqueda expansiva en el centro -->
+      <div class="flex-1 max-w-2xl mx-2">
+        <div class="relative flex items-center w-full">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 text-gray-400 text-sm pointer-events-none"></i>
+          <input id="searchInput" type="text" oninput="handleSearch(this.value)"
+            placeholder="Buscar cualquier curso (ej. Power BI, Excel, SQL, Finanzas...)"
+            class="w-full pl-11 pr-10 py-2.5 text-sm bg-[#f7f9fa] border border-udemy-dark rounded-full focus:outline-none focus:bg-white focus:ring-2 focus:ring-udemy-purple transition" />
+          <button id="clearSearchBtn" onclick="clearSearch()"
+            class="hidden absolute right-3 text-gray-400 hover:text-gray-700 text-xs" title="Limpiar búsqueda">
+            <i class="fa-solid fa-xmark text-base"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Controles Derecha: Selector Modo de Vista, Carrito y Botones Auth -->
+      <div class="flex items-center gap-2.5 sm:gap-4 shrink-0">
+
+        <!-- Selector (Dropdown) de Modo de Vista exclusivo para la Demo -->
+        <div class="relative flex items-center bg-purple-50 border border-purple-200 rounded-md px-2.5 py-1.5">
+          <i id="viewModeIcon" class="fa-solid fa-user-graduate text-udemy-purple text-xs mr-2"></i>
+          <label for="viewModeSelect" class="sr-only">Modo de Vista</label>
+          <select id="viewModeSelect" onchange="handleViewModeChange(this.value)"
+            class="bg-transparent text-xs sm:text-sm font-semibold text-udemy-dark focus:outline-none cursor-pointer pr-1">
+            <option value="student">Modo Estudiante</option>
+            <option value="admin">Modo Admin</option>
+          </select>
+        </div>
+
+        <!-- Botón Carrito de Compras con Contador -->
+        <button onclick="toggleCartSidebar(true)"
+          class="relative p-2.5 text-gray-700 hover:text-udemy-purple transition rounded-full hover:bg-gray-100"
+          aria-label="Abrir carrito de compras" title="Ver carrito">
+          <i class="fa-solid fa-cart-shopping text-lg"></i>
+          <span id="cartCounter"
+            class="absolute -top-0.5 -right-0.5 bg-udemy-purple text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow">
+            0
+          </span>
+        </button>
+
+        <!-- Botones Iniciar Sesión / Regístrate -->
+        <div class="hidden md:flex items-center gap-2">
+          <button onclick="openAuthModal('login')"
+            class="px-4 py-2 text-sm font-bold text-udemy-dark border border-udemy-dark bg-white hover:bg-gray-100 transition">
+            Iniciar Sesión
+          </button>
+          <button onclick="openAuthModal('register')"
+            class="px-4 py-2 text-sm font-bold text-white bg-udemy-dark hover:bg-gray-800 border border-udemy-dark transition">
+            Regístrate
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== CONTENEDOR PRINCIPAL DE VISTAS ==================== -->
+  <main class="flex-1">
+
+    <!-- ==================== 2. VISTA: LANDING PAGE (CATÁLOGO) ==================== -->
+    <section id="view-landing" class="block">
+
+      <!-- Hero Section estilo Udemy -->
+      <div class="bg-udemy-dark text-white relative overflow-hidden">
+        <div
+          class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14 flex flex-col lg:flex-row items-center justify-between gap-8">
+
+          <!-- Caja Blanca/Tarjeta de Promoción estilo Udemy -->
+          <div class="bg-white text-udemy-dark p-6 sm:p-8 max-w-xl shadow-xl border border-gray-200 z-10">
+            <span
+              class="inline-block text-xs font-extrabold uppercase tracking-wider bg-purple-100 text-udemy-purple px-2.5 py-1 rounded mb-3">
+              Especialización en Datos & Negocios
+            </span>
+            <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-udemy-dark leading-tight mb-3">
+              Domina Power BI y Excel Avanzado
+            </h1>
+            <p class="text-gray-600 text-sm sm:text-base mb-6 leading-relaxed">
+              Transforma datos complejos en dashboards ejecutivos e impulsa tu carrera profesional. Aprende con casos
+              reales de finanzas, inteligencia de negocios y automatización.
+            </p>
+            <div class="flex flex-wrap items-center gap-3">
+              <button onclick="openMembershipModal()"
+                class="px-6 py-3 bg-udemy-purple hover:bg-udemy-purpleHover text-white font-bold text-sm sm:text-base transition shadow-md flex items-center gap-2">
+                <span>Ver membresías</span>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+              </button>
+              <a href="#catalogo-cursos"
+                class="px-5 py-3 border border-udemy-dark text-udemy-dark font-bold text-sm sm:text-base hover:bg-gray-100 transition">
+                Explorar cursos
+              </a>
+            </div>
+            <div class="mt-5 pt-4 border-t border-gray-200 flex items-center gap-4 text-xs text-gray-500">
+              <span><i class="fa-solid fa-circle-check text-green-600 mr-1"></i>Acceso a +80 clases prácticas</span>
+              <span><i class="fa-solid fa-certificate text-udemy-purple mr-1"></i>Certificado verificable</span>
+            </div>
+          </div>
+
+          <!-- Ilustración / Estadísticas Visuales Derecha -->
+          <div class="flex-1 w-full max-w-lg lg:max-w-none flex flex-col gap-4 z-10">
+            <div
+              class="bg-gradient-to-br from-purple-900/80 via-[#2d2f31] to-black border border-gray-700 p-6 rounded-lg shadow-2xl">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                  <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+                  <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                </div>
+                <span class="text-xs text-gray-400 font-mono">Dashboard_Financiero_2026.pbix</span>
+              </div>
+              <div class="grid grid-cols-3 gap-3 mb-4">
+                <div class="bg-white/5 p-3 rounded border border-white/10">
+                  <p class="text-[11px] text-gray-400">ROI Proyectado</p>
+                  <p class="text-lg font-extrabold text-green-400">+248.5%</p>
+                </div>
+                <div class="bg-white/5 p-3 rounded border border-white/10">
+                  <p class="text-[11px] text-gray-400">Automatización</p>
+                  <p class="text-lg font-extrabold text-purple-400">12 hrs/sem</p>
+                </div>
+                <div class="bg-white/5 p-3 rounded border border-white/10">
+                  <p class="text-[11px] text-gray-400">Empleabilidad</p>
+                  <p class="text-lg font-extrabold text-amber-400">96.4%</p>
+                </div>
+              </div>
+              <!-- Barras simuladas de Power BI -->
+              <div class="space-y-2.5 bg-black/40 p-4 rounded border border-white/5">
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="text-gray-300 font-medium">Power BI & DAX Avanzado</span>
+                    <span class="text-purple-400 font-bold">94% demanda</span>
+                  </div>
+                  <div class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div class="bg-udemy-purple h-full rounded-full" style="width: 94%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="text-gray-300 font-medium">Excel Financiero & Macros VBA</span>
+                    <span class="text-green-400 font-bold">89% demanda</span>
+                  </div>
+                  <div class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div class="bg-green-500 h-full rounded-full" style="width: 89%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="text-gray-300 font-medium">SQL Server & Modelado ETL</span>
+                    <span class="text-amber-400 font-bold">82% demanda</span>
+                  </div>
+                  <div class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div class="bg-amber-400 h-full rounded-full" style="width: 82%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Catálogo / Grid de Cursos -->
+      <div id="catalogo-cursos" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4">
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-udemy-dark">Una amplia selección de cursos</h2>
+            <p class="text-gray-600 text-sm sm:text-base mt-1">
+              Elige entre nuestros programas prácticos en análisis de datos, hojas de cálculo y visualización ejecutiva.
+              Haz clic en cualquier curso para ver el temario y la clase gratuita.
+            </p>
+          </div>
+          <!-- Filtros rápidos por categoría -->
+          <div class="flex flex-wrap gap-2" id="categoryFilters">
+            <button onclick="filterByCategory('Todos')" data-cat="Todos"
+              class="cat-btn px-3.5 py-1.5 text-xs sm:text-sm font-bold bg-udemy-dark text-white rounded-full transition">
+              Todos
+            </button>
+            <button onclick="filterByCategory('Power BI')" data-cat="Power BI"
+              class="cat-btn px-3.5 py-1.5 text-xs sm:text-sm font-bold bg-white text-gray-700 border border-gray-300 hover:border-udemy-dark rounded-full transition">
+              Power BI
+            </button>
+            <button onclick="filterByCategory('Excel')" data-cat="Excel"
+              class="cat-btn px-3.5 py-1.5 text-xs sm:text-sm font-bold bg-white text-gray-700 border border-gray-300 hover:border-udemy-dark rounded-full transition">
+              Excel
+            </button>
+            <button onclick="filterByCategory('Datos & SQL')" data-cat="Datos & SQL"
+              class="cat-btn px-3.5 py-1.5 text-xs sm:text-sm font-bold bg-white text-gray-700 border border-gray-300 hover:border-udemy-dark rounded-full transition">
+              Datos & SQL
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid de Tarjetas de Cursos -->
+        <div id="coursesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Renderizado dinámicamente por JS -->
+        </div>
+      </div>
+
+      <!-- Banner inferior de confianza estilo Udemy -->
+      <div class="bg-white border-t border-udemy-border py-8 mt-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-udemy-dark">
+              <i class="fa-solid fa-play"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-udemy-dark">Aprende a tu propio ritmo</h3>
+              <p class="text-xs text-gray-600 mt-0.5">Disfruta de acceso de por vida a los cursos desde cualquier
+                dispositivo.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-udemy-dark">
+              <i class="fa-solid fa-star"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-udemy-dark">Instructores expertos en la industria</h3>
+              <p class="text-xs text-gray-600 mt-0.5">Consultores Senior en Business Intelligence, Finanzas Corporativas
+                y Ciencia de Datos.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-udemy-dark">
+              <i class="fa-solid fa-infinity"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-udemy-dark">Membresía Todo Incluido</h3>
+              <p class="text-xs text-gray-600 mt-0.5">Prueba gratis por 7 días y desbloquea todas las clases premium del
+                catálogo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 3. VISTA: DETALLES DEL CURSO Y REPRODUCTOR ==================== -->
+    <section id="view-course-detail" class="hidden">
+
+      <!-- Barra superior oscura del curso -->
+      <div class="bg-udemy-dark text-white border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <button onclick="navigateTo('landing')"
+              class="text-xs font-bold text-purple-300 hover:text-white flex items-center gap-1.5 mb-1 transition">
+              <i class="fa-solid fa-arrow-left"></i> Volver al catálogo de cursos
+            </button>
+            <h1 id="detailCourseTitle" class="text-xl sm:text-2xl font-extrabold text-white">
+              Master en Power BI: De Cero a Experto en Dashboards
+            </h1>
+            <div class="flex flex-wrap items-center gap-3 mt-1 text-xs text-gray-300">
+              <span class="bg-udemy-bestseller text-udemy-bestsellerText font-bold px-2 py-0.5 text-[11px]">Lo más
+                vendido</span>
+              <span class="flex items-center gap-1 text-amber-400 font-bold">
+                <span id="detailCourseRating">4.9</span>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star-half-stroke"></i>
+              </span>
+              <span class="text-gray-400">(1,420 calificaciones) • 6,890 estudiantes</span>
+              <span>Creado por <strong id="detailCourseAuthor" class="text-purple-300 underline">Ing. Carlos
+                  Mendoza</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout Principal: Izquierda (Reproductor + Pestañas) | Derecha (Temario + Panel de Compra Flotante) -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+          <!-- SECCIÓN IZQUIERDA (8 columnas en Desktop): Reproductor + Pestañas Descripción y Reseñas -->
+          <div class="lg:col-span-8 space-y-6">
+
+            <!-- Reproductor de Video Principal (Caja Negra de Placeholder con Botón Play y Simulación) -->
+            <div
+              class="bg-black rounded-lg overflow-hidden shadow-xl border border-gray-800 relative aspect-video flex flex-col justify-between select-none">
+
+              <!-- Cinta superior del reproductor -->
+              <div class="p-4 bg-gradient-to-b from-black/80 to-transparent flex items-center justify-between z-10">
+                <div class="flex items-center gap-2">
+                  <span id="playerStatusBadge"
+                    class="px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-green-600 text-white rounded">
+                    Vista Previa Gratuita
+                  </span>
+                  <span id="playerLessonTitle" class="text-xs sm:text-sm text-gray-200 font-medium truncate">
+                    Clase 1: Introducción y Conexión de Datos en Power BI
+                  </span>
+                </div>
+                <span class="text-xs text-gray-400 font-mono">HD 1080p</span>
+              </div>
+
+              <!-- Centro del reproductor: Botón Play / Estado de reproducción -->
+              <div class="flex-1 flex flex-col items-center justify-center text-center px-6 z-10">
+                <button id="mainPlayButton" onclick="simulateFreeClassPlay()"
+                  class="w-20 h-20 rounded-full bg-udemy-purple hover:bg-udemy-purpleHover text-white flex items-center justify-center shadow-2xl transition animate-pulse-play focus:outline-none ring-4 ring-purple-500/40"
+                  aria-label="Reproducir clase">
+                  <i id="mainPlayIcon" class="fa-solid fa-play text-3xl ml-1"></i>
+                </button>
+                <p id="playerCenterMessage" class="text-white font-bold text-sm sm:text-base mt-4">
+                  Haz clic en Play o selecciona la primera clase <span class="text-green-400">GRATIS</span> del temario
+                </p>
+                <p id="playerSubMessage" class="text-gray-400 text-xs mt-1">
+                  Duración de la clase: 14:25 min • Incluye archivos descargables (.xlsx y .pbix)
+                </p>
+              </div>
+
+              <!-- Barra de progreso inferior del reproductor -->
+              <div class="p-4 bg-gradient-to-t from-black/90 to-transparent z-10">
+                <div class="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden mb-3 cursor-pointer"
+                  onclick="simulateFreeClassPlay()">
+                  <div id="videoProgressBar" class="bg-udemy-purple h-full transition-all duration-500"
+                    style="width: 0%"></div>
+                </div>
+                <div class="flex items-center justify-between text-xs text-gray-300">
+                  <div class="flex items-center gap-4">
+                    <button onclick="simulateFreeClassPlay()" class="hover:text-white">
+                      <i id="bottomPlayIcon" class="fa-solid fa-play"></i>
+                    </button>
+                    <span id="videoTimeText" class="font-mono">00:00 / 14:25</span>
+                    <span class="hidden sm:inline-flex items-center gap-1 text-gray-400">
+                      <i class="fa-solid fa-volume-high"></i> 100%
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="px-1.5 py-0.5 bg-white/10 rounded text-[11px]">1.0x</span>
+                    <i class="fa-solid fa-closed-captioning hover:text-white cursor-pointer"></i>
+                    <i class="fa-solid fa-expand hover:text-white cursor-pointer"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pestañas: Descripción y Reseñas -->
+            <div class="bg-white border border-udemy-border rounded-sm shadow-sm">
+              <!-- Cabecera de Pestañas -->
+              <div class="flex border-b border-udemy-border px-6">
+                <button id="tabBtn-desc" onclick="switchCourseTab('desc')"
+                  class="py-4 px-2 mr-6 text-sm font-bold border-b-2 border-udemy-dark text-udemy-dark transition">
+                  Descripción del Curso
+                </button>
+                <button id="tabBtn-reviews" onclick="switchCourseTab('reviews')"
+                  class="py-4 px-2 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-udemy-dark transition flex items-center gap-1.5">
+                  <span>Reseñas</span>
+                  <span class="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full">4.9 ★</span>
+                </button>
+              </div>
+
+              <!-- Contenido Pestaña: Descripción -->
+              <div id="tabContent-desc" class="p-6 space-y-6">
+                <!-- Caja "Lo que aprenderás" estilo Udemy -->
+                <div class="border border-udemy-border p-5 bg-[#f7f9fa]">
+                  <h3 class="text-lg font-extrabold text-udemy-dark mb-4">Lo que aprenderás</h3>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
+                    <div class="flex items-start gap-2.5">
+                      <i class="fa-solid fa-check text-udemy-dark mt-1 text-xs"></i>
+                      <span>Conectar, limpiar y transformar múltiples fuentes de datos con Power Query.</span>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                      <i class="fa-solid fa-check text-udemy-dark mt-1 text-xs"></i>
+                      <span>Diseñar modelos de datos en esquema estrella optimizados para alto rendimiento.</span>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                      <i class="fa-solid fa-check text-udemy-dark mt-1 text-xs"></i>
+                      <span>Dominar funciones DAX avanzadas: CALCULATE, Inteligencia de Tiempo y Variables.</span>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                      <i class="fa-solid fa-check text-udemy-dark mt-1 text-xs"></i>
+                      <span>Construir cuadros de mando ejecutivos interactivos y publicarlos en Power BI Service.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 class="text-lg font-extrabold text-udemy-dark mb-2">Descripción detallada</h3>
+                  <p id="detailCourseDescription" class="text-sm text-gray-700 leading-relaxed mb-3">
+                    Bienvenido al programa más completo de APRENDEPEE.COM. Este curso ha sido diseñado paso a paso para
+                    llevarte desde los fundamentos hasta la creación de soluciones empresariales de Business
+                    Intelligence y análisis financiero automatizado.
+                  </p>
+                  <p class="text-sm text-gray-700 leading-relaxed">
+                    Durante las sesiones trabajarás con bases de datos reales de ventas, finanzas, logística y recursos
+                    humanos. Aprenderás las mejores prácticas de visualización ejecutiva utilizadas por analistas senior
+                    en empresas líderes de Latinoamérica.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Contenido Pestaña: Reseñas -->
+              <div id="tabContent-reviews" class="hidden p-6 space-y-6">
+                <div class="flex flex-col sm:flex-row items-center gap-6 p-4 bg-[#f7f9fa] border border-udemy-border">
+                  <div class="text-center">
+                    <div class="text-5xl font-extrabold text-udemy-gold">4.9</div>
+                    <div class="text-udemy-star text-sm my-1">
+                      <i class="fa-solid fa-star"></i>
+                      <i class="fa-solid fa-star"></i>
+                      <i class="fa-solid fa-star"></i>
+                      <i class="fa-solid fa-star"></i>
+                      <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div class="text-xs font-bold text-udemy-gold">Calificación del curso</div>
+                  </div>
+                  <div class="flex-1 w-full space-y-2 text-xs">
+                    <div class="flex items-center gap-3">
+                      <div class="w-full bg-gray-200 h-2 rounded overflow-hidden">
+                        <div class="bg-gray-600 h-full" style="width: 85%"></div>
+                      </div>
+                      <span class="text-udemy-star whitespace-nowrap">★★★★★</span>
+                      <span class="w-8 text-right text-gray-600">85%</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <div class="w-full bg-gray-200 h-2 rounded overflow-hidden">
+                        <div class="bg-gray-600 h-full" style="width: 12%"></div>
+                      </div>
+                      <span class="text-udemy-star whitespace-nowrap">★★★★☆</span>
+                      <span class="w-8 text-right text-gray-600">12%</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <div class="w-full bg-gray-200 h-2 rounded overflow-hidden">
+                        <div class="bg-gray-600 h-full" style="width: 3%"></div>
+                      </div>
+                      <span class="text-udemy-star whitespace-nowrap">★★★☆☆</span>
+                      <span class="w-8 text-right text-gray-600">3%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Lista de comentarios de estudiantes -->
+                <div class="space-y-4 divide-y divide-gray-200">
+                  <div class="pt-4 first:pt-0">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="flex items-center gap-2">
+                        <div
+                          class="w-8 h-8 rounded-full bg-udemy-dark text-white font-bold text-xs flex items-center justify-center">
+                          MR</div>
+                        <div>
+                          <p class="text-sm font-bold text-udemy-dark">María Fernanda Ríos</p>
+                          <p class="text-[11px] text-gray-500">Hace 2 días • Analista Financiera</p>
+                        </div>
+                      </div>
+                      <div class="text-udemy-star text-xs">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                          class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                      </div>
+                    </div>
+                    <p class="text-sm text-gray-700 mt-2">
+                      Excelente metodología. La primera clase gratuita me convenció de inmediato y adquirir la membresía
+                      fue la mejor inversión; ya automatizamos todos los reportes mensuales de gerencia.
+                    </p>
+                  </div>
+
+                  <div class="pt-4">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="flex items-center gap-2">
+                        <div
+                          class="w-8 h-8 rounded-full bg-udemy-purple text-white font-bold text-xs flex items-center justify-center">
+                          JL</div>
+                        <div>
+                          <p class="text-sm font-bold text-udemy-dark">Jorge Luis Paredes</p>
+                          <p class="text-[11px] text-gray-500">Hace 1 semana • Controller de Gestión</p>
+                        </div>
+                      </div>
+                      <div class="text-udemy-star text-xs">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
+                          class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                      </div>
+                    </div>
+                    <p class="text-sm text-gray-700 mt-2">
+                      Directo al grano, casos prácticos de finanzas y explicaciones muy claras de DAX y modelado
+                      estrella. 100% recomendado.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SECCIÓN DERECHA (4 columnas en Desktop): Panel Flotante de Compra + Temario en Acordeón -->
+          <div class="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+
+            <!-- Panel Flotante de Compras y Membresía -->
+            <div class="bg-white border border-udemy-border shadow-lg p-6">
+              <div class="flex items-baseline gap-3 mb-2">
+                <span id="detailCoursePrice" class="text-3xl font-extrabold text-udemy-dark">$14.99</span>
+                <span id="detailCourseOldPrice" class="text-base text-gray-400 line-through">$89.99</span>
+                <span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">83% Dto.</span>
+              </div>
+              <p class="text-xs text-red-600 font-semibold mb-4 flex items-center gap-1.5">
+                <i class="fa-regular fa-clock"></i> ¡Quedan 5 horas a este precio especial!
+              </p>
+
+              <div class="space-y-3">
+                <!-- Botón grande "Añadir al carrito" -->
+                <button onclick="addCurrentCourseToCart()"
+                  class="w-full py-3.5 px-4 bg-udemy-purple hover:bg-udemy-purpleHover text-white font-extrabold text-base transition shadow-md flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-cart-plus"></i>
+                  <span>Añadir al carrito</span>
+                </button>
+
+                <!-- Botón "Probar Membresía Gratis por 7 días" -->
+                <button onclick="openMembershipModal()"
+                  class="w-full py-3 px-4 bg-udemy-dark hover:bg-gray-800 text-white font-bold text-sm transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-crown text-amber-400"></i>
+                  <span>Probar Membresía Gratis por 7 días</span>
+                </button>
+              </div>
+
+              <p class="text-[11px] text-center text-gray-500 mt-3">
+                Garantía de reembolso de 30 días • Cancela la membresía cuando quieras
+              </p>
+            </div>
+
+            <!-- Acordeón de Temario del Curso -->
+            <div class="bg-white border border-udemy-border shadow-sm">
+              <div class="p-4 border-b border-udemy-border bg-[#f7f9fa] flex items-center justify-between">
+                <div>
+                  <h3 class="font-extrabold text-base text-udemy-dark">Contenido del curso</h3>
+                  <p class="text-xs text-gray-500">3 módulos • 6 clases • 1h 42m de duración total</p>
+                </div>
+                <span class="text-[11px] font-semibold text-udemy-purple">Temario</span>
+              </div>
+
+              <!-- Módulo 1 (Abierto por defecto) -->
+              <div class="border-b border-udemy-border">
+                <button onclick="toggleAccordion('mod1')"
+                  class="w-full px-4 py-3.5 bg-[#f7f9fa] hover:bg-gray-100 flex items-center justify-between text-left transition">
+                  <div class="flex items-center gap-2">
+                    <i id="icon-mod1" class="fa-solid fa-chevron-up text-xs text-gray-600"></i>
+                    <span class="font-bold text-sm text-udemy-dark">Módulo 1: Fundamentos y Conexión ETL</span>
+                  </div>
+                  <span class="text-xs text-gray-500">3 clases</span>
+                </button>
+
+                <div id="content-mod1" class="divide-y divide-gray-100">
+                  <!-- PRIMERA CLASE: GRATIS + Ícono de Play -->
+                  <button onclick="simulateFreeClassPlay()"
+                    class="w-full px-4 py-3.5 hover:bg-purple-50/70 flex items-center justify-between text-left transition group bg-green-50/40">
+                    <div class="flex items-start gap-3 pr-2">
+                      <i
+                        class="fa-solid fa-circle-play text-green-600 text-base mt-0.5 group-hover:scale-110 transition"></i>
+                      <div>
+                        <p class="text-xs sm:text-sm font-bold text-udemy-dark group-hover:text-udemy-purple">
+                          1. Introducción y Conexión de Datos
+                        </p>
+                        <span class="text-[11px] text-gray-500">Video • 14:25 min</span>
+                      </div>
+                    </div>
+                    <span
+                      class="shrink-0 bg-green-100 text-green-700 border border-green-300 font-extrabold text-[11px] px-2.5 py-0.5 rounded uppercase tracking-wide">
+                      GRATIS
+                    </span>
+                  </button>
+
+                  <!-- CLASE 2: Candado cerrado -> Modal Premium -->
+                  <button onclick="openPremiumModal('2. Limpieza avanzada con Power Query (ETL)')"
+                    class="w-full px-4 py-3.5 hover:bg-gray-50 flex items-center justify-between text-left transition group">
+                    <div class="flex items-start gap-3 pr-2">
+                      <i class="fa-solid fa-lock text-gray-400 group-hover:text-udemy-purple text-sm mt-0.5"></i>
+                      <div>
+                        <p class="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-udemy-dark">
+                          2. Limpieza avanzada con Power Query (ETL)
+                        </p>
+                        <span class="text-[11px] text-gray-400">Video • 18:40 min</span>
+                      </div>
+                    </div>
+                    <span class="text-xs text-gray-400"><i class="fa-solid fa-lock"></i></span>
+                  </button>
+
+                  <!-- CLASE 3: Candado cerrado -> Modal Premium -->
+                  <button onclick="openPremiumModal('3. Modelado Dimensional y Esquema Estrella')"
+                    class="w-full px-4 py-3.5 hover:bg-gray-50 flex items-center justify-between text-left transition group">
+                    <div class="flex items-start gap-3 pr-2">
+                      <i class="fa-solid fa-lock text-gray-400 group-hover:text-udemy-purple text-sm mt-0.5"></i>
+                      <div>
+                        <p class="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-udemy-dark">
+                          3. Modelado Dimensional y Esquema Estrella
+                        </p>
+                        <span class="text-[11px] text-gray-400">Video • 21:10 min</span>
+                      </div>
+                    </div>
+                    <span class="text-xs text-gray-400"><i class="fa-solid fa-lock"></i></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Módulo 2 -->
+              <div class="border-b border-udemy-border">
+                <button onclick="toggleAccordion('mod2')"
+                  class="w-full px-4 py-3.5 bg-[#f7f9fa] hover:bg-gray-100 flex items-center justify-between text-left transition">
+                  <div class="flex items-center gap-2">
+                    <i id="icon-mod2" class="fa-solid fa-chevron-up text-xs text-gray-600"></i>
+                    <span class="font-bold text-sm text-udemy-dark">Módulo 2: Fórmulas DAX y KPIs Financieros</span>
+                  </div>
+                  <span class="text-xs text-gray-500">2 clases</span>
+                </button>
+
+                <div id="content-mod2" class="divide-y divide-gray-100">
+                  <button onclick="openPremiumModal('4. Dominando CALCULATE, FILTER y ALL en DAX')"
+                    class="w-full px-4 py-3.5 hover:bg-gray-50 flex items-center justify-between text-left transition group">
+                    <div class="flex items-start gap-3 pr-2">
+                      <i class="fa-solid fa-lock text-gray-400 group-hover:text-udemy-purple text-sm mt-0.5"></i>
+                      <div>
+                        <p class="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-udemy-dark">
+                          4. Dominando CALCULATE, FILTER y ALL en DAX
+                        </p>
+                        <span class="text-[11px] text-gray-400">Video • 24:15 min</span>
+                      </div>
+                    </div>
+                    <span class="text-xs text-gray-400"><i class="fa-solid fa-lock"></i></span>
+                  </button>
+
+                  <button onclick="openPremiumModal('5. Inteligencia de Tiempo: YoY, MoM y Acumulados')"
+                    class="w-full px-4 py-3.5 hover:bg-gray-50 flex items-center justify-between text-left transition group">
+                    <div class="flex items-start gap-3 pr-2">
+                      <i class="fa-solid fa-lock text-gray-400 group-hover:text-udemy-purple text-sm mt-0.5"></i>
+                      <div>
+                        <p class="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-udemy-dark">
+                          5. Inteligencia de Tiempo: YoY, MoM y Acumulados
+                        </p>
+                        <span class="text-[11px] text-gray-400">Video • 19:50 min</span>
+                      </div>
+                    </div>
+                    <span class="text-xs text-gray-400"><i class="fa-solid fa-lock"></i></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Módulo 3 -->
+              <div>
+                <button onclick="toggleAccordion('mod3')"
+                  class="w-full px-4 py-3.5 bg-[#f7f9fa] hover:bg-gray-100 flex items-center justify-between text-left transition">
+                  <div class="flex items-center gap-2">
+                    <i id="icon-mod3" class="fa-solid fa-chevron-down text-xs text-gray-600"></i>
+                    <span class="font-bold text-sm text-udemy-dark">Módulo 3: Storytelling & Publicación Cloud</span>
+                  </div>
+                  <span class="text-xs text-gray-500">1 clase</span>
+                </button>
+
+                <div id="content-mod3" class="hidden divide-y divide-gray-100">
+                  <button onclick="openPremiumModal('6. Diseño de Dashboards Ejecutivos y Power BI Service')"
+                    class="w-full px-4 py-3.5 hover:bg-gray-50 flex items-center justify-between text-left transition group">
+                    <div class="flex items-start gap-3 pr-2">
+                      <i class="fa-solid fa-lock text-gray-400 group-hover:text-udemy-purple text-sm mt-0.5"></i>
+                      <div>
+                        <p class="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-udemy-dark">
+                          6. Diseño de Dashboards Ejecutivos y Power BI Service
+                        </p>
+                        <span class="text-[11px] text-gray-400">Proyecto Final • 28:00 min</span>
+                      </div>
+                    </div>
+                    <span class="text-xs text-gray-400"><i class="fa-solid fa-lock"></i></span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 5. VISTA: PANEL DE ADMINISTRADOR ==================== -->
+    <section id="view-admin" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Encabezado Admin -->
+      <div
+        class="bg-white border border-udemy-border p-6 shadow-sm mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 text-xs font-extrabold uppercase bg-purple-100 text-udemy-purple rounded">
+              Panel de Control
+            </span>
+            <span class="text-xs text-gray-500">APRENDEPEE.COM Backoffice</span>
+          </div>
+          <h1 class="text-2xl font-extrabold text-udemy-dark mt-1">Gestión de Usuarios y Catálogo</h1>
+          <p class="text-sm text-gray-600">Administra los estudiantes registrados, el estado de sus membresías y publica
+            nuevos cursos.</p>
+        </div>
+
+        <button onclick="openNewCourseModal()"
+          class="px-5 py-3 bg-udemy-purple hover:bg-udemy-purpleHover text-white font-bold text-sm shadow-md transition flex items-center gap-2 shrink-0">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>Subir nuevo curso</span>
+        </button>
+      </div>
+
+      <!-- KPIs Rápidos del Admin -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white border border-udemy-border p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase text-gray-500">Usuarios Registrados</p>
+            <p id="adminTotalUsers" class="text-2xl font-extrabold text-udemy-dark mt-1">1,284</p>
+            <p class="text-xs text-green-600 font-semibold mt-1"><i class="fa-solid fa-arrow-trend-up"></i> +14% este
+              mes</p>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-purple-50 text-udemy-purple flex items-center justify-center text-xl">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        </div>
+        <div class="bg-white border border-udemy-border p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase text-gray-500">Membresías Pro Activas</p>
+            <p class="text-2xl font-extrabold text-udemy-dark mt-1">412</p>
+            <p class="text-xs text-purple-700 font-semibold mt-1">Conversión trial: 68%</p>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-crown"></i>
+          </div>
+        </div>
+        <div class="bg-white border border-udemy-border p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase text-gray-500">Cursos Publicados</p>
+            <p id="adminTotalCourses" class="text-2xl font-extrabold text-udemy-dark mt-1">4</p>
+            <p class="text-xs text-gray-500 mt-1">Catálogo activo en vivo</p>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-photo-film"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Gestión de Usuarios -->
+      <div class="bg-white border border-udemy-border shadow-sm overflow-hidden">
+        <div
+          class="px-6 py-4 border-b border-udemy-border flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-[#f7f9fa]">
+          <h2 class="font-extrabold text-base text-udemy-dark">Tabla de Gestión de Usuarios</h2>
+          <span class="text-xs text-gray-500">Mostrando usuarios recientes de la plataforma</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-udemy-border text-[11px] font-extrabold uppercase text-gray-500 bg-gray-50">
+                <th class="py-3.5 px-6">Usuario</th>
+                <th class="py-3.5 px-6">Correo Electrónico</th>
+                <th class="py-3.5 px-6">Plan / Membresía</th>
+                <th class="py-3.5 px-6">Cursos Inscritos</th>
+                <th class="py-3.5 px-6">Estado</th>
+                <th class="py-3.5 px-6 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="adminUsersTableBody" class="divide-y divide-gray-200 text-sm">
+              <!-- Renderizado por JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== 4. VISTA DEL CARRITO (SIDEBAR / MODAL DESLIZANTE) ==================== -->
+  <div id="cartOverlay" class="fixed inset-0 bg-black/60 z-50 hidden transition-opacity">
+    <div onclick="toggleCartSidebar(false)" class="absolute inset-0" aria-label="Cerrar carrito"></div>
+
+    <aside class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col z-10">
+      <!-- Cabecera del Carrito -->
+      <div class="p-5 border-b border-udemy-border flex items-center justify-between bg-[#f7f9fa]">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-cart-shopping text-udemy-purple"></i>
+          <h2 class="text-lg font-extrabold text-udemy-dark">Tu Carrito de Compras</h2>
+        </div>
+        <button onclick="toggleCartSidebar(false)"
+          class="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center text-gray-600 transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Lista de Cursos Agregados -->
+      <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-5 divide-y divide-gray-200">
+        <!-- Renderizado dinámicamente por JS -->
+      </div>
+
+      <!-- Pie del Carrito: Subtotal y Botón Proceder al Pago -->
+      <div class="p-5 border-t border-udemy-border bg-[#f7f9fa] space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase text-gray-500 block">Subtotal:</span>
+            <span id="cartSavingsText" class="text-xs text-green-700 font-semibold">Ahorras $0.00</span>
+          </div>
+          <span id="cartSubtotal" class="text-2xl font-extrabold text-udemy-dark">$0.00</span>
+        </div>
+
+        <button onclick="proceedToCheckout()"
+          class="w-full py-3.5 px-4 bg-udemy-purple hover:bg-udemy-purpleHover text-white font-extrabold text-base shadow-md transition flex items-center justify-center gap-2">
+          <span>Proceder al Pago</span>
+          <i class="fa-solid fa-lock text-xs"></i>
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ==================== MODAL: CLASE PREMIUM BLOQUEADA ==================== -->
+  <div id="premiumModal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+    <div
+      class="bg-white max-w-md w-full rounded-sm shadow-2xl border border-udemy-border overflow-hidden animate-fadeIn">
+      <div class="bg-udemy-dark text-white p-5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-udemy-purple flex items-center justify-center text-white">
+            <i class="fa-solid fa-lock text-sm"></i>
+          </div>
+          <span class="font-extrabold text-base">Contenido Exclusivo</span>
+        </div>
+        <button onclick="closePremiumModal()" class="text-gray-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-6 text-center space-y-4">
+        <div
+          class="w-16 h-16 rounded-full bg-purple-100 text-udemy-purple flex items-center justify-center mx-auto text-2xl">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <p id="premiumModalLessonName" class="text-xs font-bold uppercase tracking-wider text-udemy-purple">
+          Clase Bloqueada
+        </p>
+        <!-- Texto exacto requerido por la especificación -->
+        <h3 class="text-lg font-extrabold text-udemy-dark leading-snug">
+          Esta clase es premium. Adquiere el curso o una membresía para continuar
+        </h3>
+        <p class="text-xs text-gray-600">
+          Desbloquea todas las lecciones en HD, plantillas descargables de Excel/Power BI y certificado de finalización.
+        </p>
+
+        <div class="pt-2 space-y-2.5">
+          <button onclick="closePremiumModal(); addCurrentCourseToCart(); toggleCartSidebar(true);"
+            class="w-full py-3 bg-udemy-purple hover:bg-udemy-purpleHover text-white font-extrabold text-sm transition shadow">
+            <i class="fa-solid fa-cart-plus mr-1.5"></i> Añadir curso al carrito
+          </button>
+          <button onclick="closePremiumModal(); openMembershipModal();"
+            class="w-full py-3 bg-udemy-dark hover:bg-gray-800 text-white font-bold text-sm transition">
+            <i class="fa-solid fa-crown text-amber-400 mr-1.5"></i> Probar Membresía Gratis por 7 días
+          </button>
+          <button onclick="closePremiumModal()"
+            class="w-full py-2 text-xs font-semibold text-gray-500 hover:text-udemy-dark">
+            Seguir viendo la clase gratuita
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: SUBIR NUEVO CURSO (MODO ADMIN) ==================== -->
+  <div id="newCourseModal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white max-w-lg w-full rounded-sm shadow-2xl border border-udemy-border overflow-hidden">
+      <div class="bg-udemy-dark text-white p-5 flex items-center justify-between">
+        <h3 class="font-extrabold text-base flex items-center gap-2">
+          <i class="fa-solid fa-cloud-arrow-up text-udemy-purple"></i>
+          <span>Publicar Nuevo Curso en APRENDEPEE.COM</span>
+        </h3>
+        <button onclick="closeNewCourseModal()" class="text-gray-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleCreateCourse(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Título del Curso *</label>
+          <input id="newCourseTitle" type="text" required placeholder="Ej: Automatización con Power Automate y Excel"
+            class="w-full px-3.5 py-2 border border-gray-300 text-sm focus:outline-none focus:border-udemy-purple" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Autor / Instructor *</label>
+            <input id="newCourseAuthor" type="text" required placeholder="Ej: Ing. Roberto Gómez"
+              class="w-full px-3.5 py-2 border border-gray-300 text-sm focus:outline-none focus:border-udemy-purple" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Categoría</label>
+            <select id="newCourseCategory"
+              class="w-full px-3.5 py-2 border border-gray-300 text-sm focus:outline-none focus:border-udemy-purple bg-white">
+              <option value="Power BI">Power BI</option>
+              <option value="Excel">Excel</option>
+              <option value="Datos & SQL">Datos & SQL</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Precio Oferta (USD) *</label>
+            <input id="newCoursePrice" type="number" step="0.01" value="14.99" required
+              class="w-full px-3.5 py-2 border border-gray-300 text-sm focus:outline-none focus:border-udemy-purple" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Precio Regular Tachado (USD)</label>
+            <input id="newCourseOldPrice" type="number" step="0.01" value="79.99" required
+              class="w-full px-3.5 py-2 border border-gray-300 text-sm focus:outline-none focus:border-udemy-purple" />
+          </div>
+        </div>
+
+        <div class="pt-3 flex items-center justify-end gap-3 border-t border-gray-200">
+          <button type="button" onclick="closeNewCourseModal()"
+            class="px-4 py-2 text-sm font-bold text-gray-600 hover:text-udemy-dark">
+            Cancelar
+          </button>
+          <button type="submit"
+            class="px-5 py-2.5 bg-udemy-purple hover:bg-udemy-purpleHover text-white text-sm font-extrabold shadow">
+            Guardar y Publicar Curso
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: MEMBRESÍAS / AUTH DEMO ==================== -->
+  <div id="infoModal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white max-w-md w-full rounded-sm shadow-2xl border border-udemy-border overflow-hidden">
+      <div class="bg-udemy-dark text-white p-5 flex items-center justify-between">
+        <h3 id="infoModalTitle" class="font-extrabold text-base">Membresía Pro APRENDEPEE</h3>
+        <button onclick="closeInfoModal()" class="text-gray-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div id="infoModalBody" class="p-6 space-y-4">
+        <!-- Contenido dinámico -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== NOTIFICACIÓN TOAST FLOTANTE ==================== -->
+  <div id="toastNotification"
+    class="fixed bottom-5 right-5 z-50 hidden bg-udemy-dark text-white px-4 py-3 rounded shadow-2xl border-l-4 border-udemy-purple flex items-center gap-3 text-sm font-medium">
+    <i class="fa-solid fa-circle-check text-green-400 text-base"></i>
+    <span id="toastMessage">Curso añadido al carrito</span>
+  </div>
+
+  <!-- ==================== FOOTER ESTILO UDEMY ==================== -->
+  <footer class="bg-udemy-dark text-white border-t border-gray-800 mt-12">
+    <div
+      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded bg-udemy-purple flex items-center justify-center text-white font-extrabold text-sm">
+          A
+        </div>
+        <span class="font-extrabold tracking-tight text-white">APRENDE<span
+            class="text-purple-400">PEE</span>.COM</span>
+      </div>
+      <p class="text-xs text-gray-400">
+        © 2026 APRENDEPEE.COM Inc. Todos los derechos reservados. Demo UI interactiva inspirada en Udemy.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ==================== LÓGICA JAVASCRIPT DE LA SPA ==================== -->
+  <script>
+    // Inicialización de Supabase
+    const SUPABASE_URL = 'https://ypepswosoqxhpjzxqpvx.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_La8WA2Mtf5Y-7S9Ia5w2DQ_geiDfxHz';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Catálogo de cursos desde Supabase
+    let coursesData = [];
+
+    // Usuarios simulados para el Panel de Administrador
+    const adminUsersData = [
+      { id: 101, name: "María Fernanda Ríos", email: "mrios@empresa.pe", plan: "Membresía Pro", courses: 4, status: "Activo" },
+      { id: 102, name: "Jorge Luis Paredes", email: "jparedes@finanzas.com", plan: "Curso Individual", courses: 2, status: "Activo" },
+      { id: 103, name: "Lucía Quispe Huamán", email: "lucia.qh@datos.pe", plan: "Trial 7 Días", courses: 1, status: "En Prueba" },
+      { id: 104, name: "Sebastián Vega", email: "svega@consultora.io", plan: "Membresía Pro", courses: 5, status: "Activo" }
+    ];
+
+    // Estado de la aplicación
+    let cart = [];
+    let currentCourse = null;
+    let activeCategory = "Todos";
+    let searchQuery = "";
+    let isPlayingFreeLesson = false;
+    let videoInterval = null;
+    let videoProgress = 0;
+
+    //Cursos de respaldo por si la tabla 'courses' en Supabase está vacía o bloqueada por RLS
+    const fallbackCoursesData = [
+      {
+        id: 1,
+        title: "Master en Power BI: De Cero a Experto en Dashboards",
+        author: "Ing. Carlos Mendoza",
+        category: "Power BI",
+        rating: 4.9,
+        reviews: 1420,
+        price: 14.99,
+        oldPrice: 89.99,
+        bestseller: true,
+        badgeColor: "from-amber-500 to-yellow-600",
+        icon: "fa-chart-column",
+        description: "Domina Power Query, Modelado Estrella, DAX Avanzado y Power BI Service creando más de 8 dashboards corporativos paso a paso."
+      },
+      {
+        id: 2,
+        title: "Excel Financiero y Automatización con Macros VBA",
+        author: "Mg. Elena Valdivia",
+        category: "Excel",
+        rating: 4.8,
+        reviews: 985,
+        price: 12.99,
+        oldPrice: 74.99,
+        bestseller: true,
+        badgeColor: "from-emerald-600 to-green-700",
+        icon: "fa-file-excel",
+        description: "Aprende modelamiento financiero, tablas dinámicas avanzadas, Power Pivot y programación de macros VBA para finanzas."
+      },
+      {
+        id: 3,
+        title: "SQL Server para Análisis de Datos y Business Intelligence",
+        author: "Ing. Diego Salazar",
+        category: "Datos & SQL",
+        rating: 4.7,
+        reviews: 640,
+        price: 15.99,
+        oldPrice: 84.99,
+        bestseller: false,
+        badgeColor: "from-purple-600 to-indigo-800",
+        icon: "fa-database",
+        description: "Domina consultas SQL complejas, Joins, Window Functions, procedimientos almacenados e integración directa con Power BI."
+      },
+      {
+        id: 4,
+        title: "Power BI + Excel Integrado: Control de Gestión y KPIs",
+        author: "Lic. Martín Arévalo",
+        category: "Power BI",
+        rating: 4.9,
+        reviews: 512,
+        price: 13.99,
+        oldPrice: 79.99,
+        bestseller: true,
+        badgeColor: "from-blue-600 to-cyan-700",
+        icon: "fa-chart-pie",
+        description: "Conecta tus reportes de Excel con Power BI y diseña tableros de control presupuestario, flujo de caja y rentabilidad."
+      }
+    ];
+
+    // Consultar la tabla 'courses' de Supabase (Columnas detectadas: id, title, description, price, image_url)
+    async function fetchCourses() {
+      try {
+        const { data, error } = await supabase.from('courses').select('*');
+        if (error) {
+          console.error("Error al obtener cursos desde Supabase:", error.message);
+          coursesData = [...fallbackCoursesData];
+          currentCourse = coursesData[0];
+          showToast("Error en Supabase: " + error.message);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          coursesData = data.map(course => ({
+            ...course,
+            title: course.title || "Curso sin título",
+            author: course.author || "Instructor APRENDEPEE",
+            category: course.category || (course.title && course.title.toLowerCase().includes("excel") ? "Excel" : "Power BI"),
+            rating: Number(course.rating ?? 4.9),
+            reviews: Number(course.reviews ?? 320),
+            price: Number(course.price ?? 14.99),
+            oldPrice: Number(course.oldPrice ?? (Number(course.price || 14.99) * 4).toFixed(2)),
+            bestseller: course.bestseller ?? true,
+            badgeColor: course.badgeColor || "from-amber-500 to-yellow-600",
+            icon: course.icon || "fa-chart-column",
+            image_url: course.image_url || null,
+            description: course.description || "Curso especializado en APRENDEPEE.COM."
+          }));
+          showToast(`Conectado a Supabase (${coursesData.length} cursos cargados)`);
+        } else {
+          // Si la tabla en Supabase aún no tiene filas o falta la política RLS SELECT, mostramos el catálogo base
+          coursesData = [...fallbackCoursesData];
+          showToast("Conectado a Supabase (Tabla 'courses' vacía o con RLS activo: mostrando catálogo demo)");
+        }
+
+        if (coursesData.length > 0 && !currentCourse) {
+          currentCourse = coursesData[0];
+        }
+      } catch (err) {
+        console.error("Error de conexión con Supabase:", err);
+        coursesData = [...fallbackCoursesData];
+        currentCourse = coursesData[0];
+      }
+    }
+
+    // Inicializar la vista al cargar el DOM de manera asíncrona
+    document.addEventListener("DOMContentLoaded", async () => {
+      await fetchCourses();
+      renderCoursesGrid();
+      renderCart();
+      renderAdminUsersTable();
+    });
+
+    // Renderizar estrellas estilo Udemy
+    function renderStarsHTML(rating) {
+      const fullStars = Math.floor(rating);
+      const hasHalf = rating - fullStars >= 0.4;
+      let html = "";
+      for (let i = 0; i < fullStars; i++) {
+        html += '<i class="fa-solid fa-star"></i>';
+      }
+      if (hasHalf) {
+        html += '<i class="fa-solid fa-star-half-stroke"></i>';
+      }
+      return html;
+    }
+
+    // 2. Renderizar Grid de Cursos en Landing Page
+    function renderCoursesGrid() {
+      const grid = document.getElementById("coursesGrid");
+      const filtered = coursesData.filter(course => {
+        const matchesCat = activeCategory === "Todos" || course.category === activeCategory;
+        const matchesSearch =
+          course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          course.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          course.category.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCat && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white border border-udemy-border p-10 text-center">
+            <i class="fa-solid fa-magnifying-glass text-3xl text-gray-300 mb-3"></i>
+            <p class="font-bold text-base text-udemy-dark">No encontramos cursos que coincidan con "${searchQuery}"</p>
+            <button onclick="clearSearch()" class="mt-3 px-4 py-2 bg-udemy-purple text-white text-xs font-bold">
+              Restablecer filtros
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(course => {
+        const inCart = cart.some(item => item.id === course.id);
+        return `
+          <article class="bg-white border border-udemy-border hover:shadow-xl transition flex flex-col justify-between group">
+            <!-- Área clickable para ir al Detalle del Curso y Reproductor -->
+            <div onclick="openCourseDetail(${course.id})" class="cursor-pointer">
+              <!-- Imagen de miniatura (Placeholder tecnológico/datos o image_url de Supabase) -->
+              <div class="relative aspect-video bg-gradient-to-br ${course.badgeColor} flex items-center justify-center overflow-hidden">
+                ${course.image_url ? `<img src="${course.image_url}" alt="${course.title}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.style.display='none'" />` : `<i class="fa-solid ${course.icon} text-white/90 text-5xl group-hover:scale-110 transition-transform duration-300"></i>`}
+                <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition"></div>
+                <span class="absolute top-2.5 left-2.5 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                  ${course.category}
+                </span>
+                <span class="absolute bottom-2.5 right-2.5 bg-green-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-1 shadow">
+                  <i class="fa-solid fa-play text-[9px]"></i> 1ra Clase GRATIS
+                </span>
+              </div>
+
+              <!-- Información de la tarjeta -->
+              <div class="p-4 pb-2">
+                <h3 class="font-extrabold text-base text-udemy-dark group-hover:text-udemy-purple line-clamp-2 leading-snug">
+                  ${course.title}
+                </h3>
+                <p class="text-xs text-gray-500 mt-1 truncate">${course.author}</p>
+
+                <!-- Rating (4.5 a 5 estrellas) -->
+                <div class="flex items-center gap-1.5 mt-2">
+                  <span class="font-extrabold text-xs text-udemy-gold">${course.rating.toFixed(1)}</span>
+                  <div class="flex items-center text-udemy-star text-xs">
+                    ${renderStarsHTML(course.rating)}
+                  </div>
+                  <span class="text-[11px] text-gray-400">(${course.reviews.toLocaleString()})</span>
+                </div>
+
+                <!-- Precio con descuento y precio tachado -->
+                <div class="flex items-baseline gap-2 mt-2.5">
+                  <span class="text-lg font-extrabold text-udemy-dark">$${course.price.toFixed(2)}</span>
+                  <span class="text-xs text-gray-400 line-through">$${course.oldPrice.toFixed(2)}</span>
+                </div>
+
+                ${course.bestseller ? `
+                  <span class="inline-block mt-2 bg-udemy-bestseller text-udemy-bestsellerText text-[11px] font-bold px-2 py-0.5">
+                    Lo más vendido
+                  </span>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Botones de acción en tarjeta -->
+            <div class="p-4 pt-2 flex items-center gap-2">
+              <button
+                onclick="addToCart(${course.id})"
+                class="flex-1 py-2 px-3 text-xs font-extrabold text-white ${inCart ? 'bg-gray-800 hover:bg-black' : 'bg-udemy-purple hover:bg-udemy-purpleHover'} transition flex items-center justify-center gap-1.5"
+              >
+                <i class="fa-solid ${inCart ? 'fa-check' : 'fa-cart-plus'}"></i>
+                <span>${inCart ? 'En el carrito' : 'Añadir al carrito'}</span>
+              </button>
+              <button
+                onclick="openCourseDetail(${course.id})"
+                class="py-2 px-3 text-xs font-bold border border-udemy-dark text-udemy-dark hover:bg-gray-100 transition"
+                title="Ver temario y clase gratis"
+              >
+                Ver curso
+              </button>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      const adminCoursesCount = document.getElementById("adminTotalCourses");
+      if (adminCoursesCount) adminCoursesCount.textContent = coursesData.length;
+    }
+
+    // Filtrar por categoría
+    function filterByCategory(category) {
+      activeCategory = category;
+      document.querySelectorAll(".cat-btn").forEach(btn => {
+        if (btn.dataset.cat === category) {
+          btn.className = "cat-btn px-3.5 py-1.5 text-xs sm:text-sm font-bold bg-udemy-dark text-white rounded-full transition";
+        } else {
+          btn.className = "cat-btn px-3.5 py-1.5 text-xs sm:text-sm font-bold bg-white text-gray-700 border border-gray-300 hover:border-udemy-dark rounded-full transition";
+        }
+      });
+      renderCoursesGrid();
+    }
+
+    // Búsqueda en tiempo real desde el Navbar
+    function handleSearch(value) {
+      searchQuery = value;
+      const clearBtn = document.getElementById("clearSearchBtn");
+      if (value.trim().length > 0) {
+        clearBtn.classList.remove("hidden");
+        // Si el usuario busca estando en otra vista, llevamos al catálogo
+        if (document.getElementById("view-landing").classList.contains("hidden")) {
+          navigateTo("landing");
+        }
+      } else {
+        clearBtn.classList.add("hidden");
+      }
+      renderCoursesGrid();
+    }
+
+    function clearSearch() {
+      const input = document.getElementById("searchInput");
+      input.value = "";
+      handleSearch("");
+    }
+
+    // Navegación entre vistas SPA
+    function navigateTo(viewName) {
+      const views = ["landing", "course-detail", "admin"];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (v === viewName) {
+          el.classList.remove("hidden");
+        } else {
+          el.classList.add("hidden");
+        }
+      });
+
+      // Sincronizar el selector de Modo de Vista en el Navbar
+      const select = document.getElementById("viewModeSelect");
+      const icon = document.getElementById("viewModeIcon");
+      if (viewName === "admin") {
+        select.value = "admin";
+        icon.className = "fa-solid fa-user-shield text-udemy-purple text-xs mr-2";
+      } else {
+        select.value = "student";
+        icon.className = "fa-solid fa-user-graduate text-udemy-purple text-xs mr-2";
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Cambio en el selector "Modo Estudiante" / "Modo Admin"
+    function handleViewModeChange(mode) {
+      if (mode === "admin") {
+        navigateTo("admin");
+        showToast("Modo Administrador activado");
+      } else {
+        navigateTo("landing");
+        showToast("Modo Estudiante activado");
+      }
+    }
+
+    // 3. Abrir Vista de Detalles del Curso y Reproductor
+    function openCourseDetail(courseId) {
+      const found = coursesData.find(c => c.id === courseId);
+      if (!found) return;
+      currentCourse = found;
+
+      document.getElementById("detailCourseTitle").textContent = found.title;
+      document.getElementById("detailCourseAuthor").textContent = found.author;
+      document.getElementById("detailCourseRating").textContent = found.rating.toFixed(1);
+      document.getElementById("detailCoursePrice").textContent = `$${found.price.toFixed(2)}`;
+      document.getElementById("detailCourseOldPrice").textContent = `$${found.oldPrice.toFixed(2)}`;
+      document.getElementById("detailCourseDescription").textContent = found.description;
+
+      resetVideoPlayer();
+      navigateTo("course-detail");
+    }
+
+    // Simular reproducción de la primera clase GRATIS
+    function simulateFreeClassPlay() {
+      const playIcon = document.getElementById("mainPlayIcon");
+      const bottomIcon = document.getElementById("bottomPlayIcon");
+      const centerMsg = document.getElementById("playerCenterMessage");
+      const subMsg = document.getElementById("playerSubMessage");
+      const badge = document.getElementById("playerStatusBadge");
+      const bar = document.getElementById("videoProgressBar");
+      const timeText = document.getElementById("videoTimeText");
+
+      isPlayingFreeLesson = !isPlayingFreeLesson;
+
+      if (isPlayingFreeLesson) {
+        playIcon.className = "fa-solid fa-pause text-3xl";
+        bottomIcon.className = "fa-solid fa-pause";
+        badge.textContent = "REPRODUCIENDO EN VIVO • CLASE GRATIS";
+        badge.className = "px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-green-500 text-white rounded animate-pulse";
+        centerMsg.innerHTML = `<span class="text-green-400">▶ Reproduciendo:</span> Clase 1 - Introducción y Conexión de Datos`;
+        subMsg.textContent = "Audio y video HD activos • Puedes pausar en cualquier momento";
+        showToast("Reproduciendo Clase 1 (GRATIS)");
+
+        clearInterval(videoInterval);
+        videoInterval = setInterval(() => {
+          videoProgress = (videoProgress + 2) % 100;
+          bar.style.width = `${videoProgress}%`;
+          const mins = Math.floor((videoProgress / 100) * 14);
+          const secs = Math.floor(((videoProgress / 100) * 865) % 60);
+          timeText.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")} / 14:25`;
+        }, 600);
+      } else {
+        playIcon.className = "fa-solid fa-play text-3xl ml-1";
+        bottomIcon.className = "fa-solid fa-play";
+        badge.textContent = "En Pausa • Clase Gratuita";
+        badge.className = "px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-amber-600 text-white rounded";
+        centerMsg.textContent = "Reproducción en pausa. Haz clic para continuar.";
+        clearInterval(videoInterval);
+      }
+    }
+
+    function resetVideoPlayer() {
+      isPlayingFreeLesson = false;
+      clearInterval(videoInterval);
+      videoProgress = 0;
+      document.getElementById("mainPlayIcon").className = "fa-solid fa-play text-3xl ml-1";
+      document.getElementById("bottomPlayIcon").className = "fa-solid fa-play";
+      document.getElementById("videoProgressBar").style.width = "0%";
+      document.getElementById("videoTimeText").textContent = "00:00 / 14:25";
+      document.getElementById("playerCenterMessage").innerHTML =
+        'Haz clic en Play o selecciona la primera clase <span class="text-green-400">GRATIS</span> del temario';
+    }
+
+    // Cambiar entre pestaña Descripción y Reseñas
+    function switchCourseTab(tab) {
+      const descBtn = document.getElementById("tabBtn-desc");
+      const revBtn = document.getElementById("tabBtn-reviews");
+      const descContent = document.getElementById("tabContent-desc");
+      const revContent = document.getElementById("tabContent-reviews");
+
+      if (tab === "desc") {
+        descBtn.className = "py-4 px-2 mr-6 text-sm font-bold border-b-2 border-udemy-dark text-udemy-dark transition";
+        revBtn.className = "py-4 px-2 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-udemy-dark transition flex items-center gap-1.5";
+        descContent.classList.remove("hidden");
+        revContent.classList.add("hidden");
+      } else {
+        revBtn.className = "py-4 px-2 text-sm font-bold border-b-2 border-udemy-dark text-udemy-dark transition flex items-center gap-1.5";
+        descBtn.className = "py-4 px-2 mr-6 text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-udemy-dark transition";
+        revContent.classList.remove("hidden");
+        descContent.classList.add("hidden");
+      }
+    }
+
+    // Acordeón del Temario
+    function toggleAccordion(modId) {
+      const content = document.getElementById(`content-${modId}`);
+      const icon = document.getElementById(`icon-${modId}`);
+      const isHidden = content.classList.contains("hidden");
+      if (isHidden) {
+        content.classList.remove("hidden");
+        icon.className = "fa-solid fa-chevron-up text-xs text-gray-600";
+      } else {
+        content.classList.add("hidden");
+        icon.className = "fa-solid fa-chevron-down text-xs text-gray-600";
+      }
+    }
+
+    // Modal de Clase Premium Bloqueada
+    function openPremiumModal(lessonTitle) {
+      document.getElementById("premiumModalLessonName").textContent = lessonTitle;
+      document.getElementById("premiumModal").classList.remove("hidden");
+    }
+
+    function closePremiumModal() {
+      document.getElementById("premiumModal").classList.add("hidden");
+    }
+
+    // 4. Lógica del Carrito de Compras
+    function addToCart(courseId) {
+      const course = coursesData.find(c => c.id === courseId);
+      if (!course) return;
+
+      const exists = cart.some(item => item.id === courseId);
+      if (exists) {
+        toggleCartSidebar(true);
+        showToast("Este curso ya está en tu carrito");
+        return;
+      }
+
+      cart.push(course);
+      updateCartCounter();
+      renderCart();
+      renderCoursesGrid();
+      showToast(`"${course.title}" añadido al carrito (+1)`);
+    }
+
+    function addCurrentCourseToCart() {
+      if (currentCourse) {
+        addToCart(currentCourse.id);
+      }
+    }
+
+    function removeFromCart(courseId) {
+      cart = cart.filter(item => item.id !== courseId);
+      updateCartCounter();
+      renderCart();
+      renderCoursesGrid();
+      showToast("Curso eliminado del carrito");
+    }
+
+    function updateCartCounter() {
+      const counter = document.getElementById("cartCounter");
+      counter.textContent = cart.length;
+      counter.classList.add("scale-125");
+      setTimeout(() => counter.classList.remove("scale-125"), 200);
+    }
+
+    function renderCart() {
+      const container = document.getElementById("cartItemsContainer");
+      const subtotalEl = document.getElementById("cartSubtotal");
+      const savingsEl = document.getElementById("cartSavingsText");
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="py-16 text-center space-y-3">
+            <div class="w-16 h-16 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto text-2xl">
+              <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+            <p class="font-bold text-sm text-udemy-dark">Tu carrito está vacío</p>
+            <p class="text-xs text-gray-500 max-w-xs mx-auto">
+              Explora nuestros cursos de Power BI, Excel y SQL y agrégalos para comenzar a aprender.
+            </p>
+          </div>
+        `;
+        subtotalEl.textContent = "$0.00";
+        savingsEl.textContent = "Ahorras $0.00";
+        return;
+      }
+
+      let subtotal = 0;
+      let totalOld = 0;
+
+      container.innerHTML = cart.map(item => {
+        subtotal += item.price;
+        totalOld += item.oldPrice;
+        return `
+          <div class="py-4 first:pt-0 flex items-start gap-3">
+            <div class="w-16 h-12 rounded bg-gradient-to-br ${item.badgeColor} flex items-center justify-center text-white shrink-0">
+              <i class="fa-solid ${item.icon}"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-extrabold text-udemy-dark line-clamp-2">${item.title}</h4>
+              <p class="text-[11px] text-gray-500">${item.author}</p>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-sm font-extrabold text-udemy-purple">$${item.price.toFixed(2)}</span>
+                <span class="text-[11px] text-gray-400 line-through">$${item.oldPrice.toFixed(2)}</span>
+              </div>
+            </div>
+            <button
+              onclick="removeFromCart(${item.id})"
+              class="text-gray-400 hover:text-red-600 p-1.5 transition"
+              title="Eliminar curso"
+            >
+              <i class="fa-solid fa-trash-can text-sm"></i>
+            </button>
+          </div>
+        `;
+      }).join("");
+
+      const savings = Math.max(0, totalOld - subtotal);
+      subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+      savingsEl.textContent = `Ahorras $${savings.toFixed(2)} en esta compra`;
+    }
+
+    function toggleCartSidebar(open) {
+      const overlay = document.getElementById("cartOverlay");
+      if (open) {
+        overlay.classList.remove("hidden");
+      } else {
+        overlay.classList.add("hidden");
+      }
+    }
+
+    function proceedToCheckout() {
+      if (cart.length === 0) {
+        showToast("Agrega al menos un curso antes de proceder al pago");
+        return;
+      }
+      const total = cart.reduce((acc, item) => acc + item.price, 0);
+      toggleCartSidebar(false);
+      openCustomInfoModal(
+        "Checkout Seguro • APRENDEPEE.COM",
+        `
+          <div class="text-center space-y-3">
+            <div class="w-14 h-14 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto text-2xl">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h4 class="font-extrabold text-base text-udemy-dark">Resumen de tu pedido (${cart.length} curso${cart.length > 1 ? 's' : ''})</h4>
+            <p class="text-xs text-gray-600">Total a pagar: <strong class="text-udemy-purple text-base">$${total.toFixed(2)} USD</strong></p>
+            <button
+              onclick="completePurchaseSimulation()"
+              class="w-full py-3 bg-udemy-purple hover:bg-udemy-purpleHover text-white font-extrabold text-sm shadow"
+            >
+              Confirmar Pago Inmediato
+            </button>
+          </div>
+        `
+      );
+    }
+
+    function completePurchaseSimulation() {
+      cart = [];
+      updateCartCounter();
+      renderCart();
+      renderCoursesGrid();
+      closeInfoModal();
+      showToast("¡Pago procesado con éxito! Cursos desbloqueados.");
+    }
+
+    // 5. Lógica del Panel de Administrador
+    function renderAdminUsersTable() {
+      const tbody = document.getElementById("adminUsersTableBody");
+      tbody.innerHTML = adminUsersData.map(user => `
+        <tr class="hover:bg-gray-50 transition">
+          <td class="py-3.5 px-6 font-bold text-udemy-dark">${user.name}</td>
+          <td class="py-3.5 px-6 text-gray-600">${user.email}</td>
+          <td class="py-3.5 px-6">
+            <span class="px-2.5 py-0.5 text-xs font-bold rounded ${user.plan.includes("Pro")
+          ? "bg-purple-100 text-udemy-purple"
+          : "bg-gray-100 text-gray-700"
+        }">
+              ${user.plan}
+            </span>
+          </td>
+          <td class="py-3.5 px-6 font-semibold text-gray-700">${user.courses} cursos</td>
+          <td class="py-3.5 px-6">
+            <span class="inline-flex items-center gap-1 text-xs font-bold ${user.status === "Activo" ? "text-green-600" : "text-amber-600"
+        }">
+              <span class="w-2 h-2 rounded-full ${user.status === "Activo" ? "bg-green-600" : "bg-amber-500"}"></span>
+              ${user.status}
+            </span>
+          </td>
+          <td class="py-3.5 px-6 text-right">
+            <button
+              onclick="toggleUserStatus(${user.id})"
+              class="text-xs font-bold text-udemy-purple hover:underline"
+            >
+              Cambiar estado
+            </button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function toggleUserStatus(userId) {
+      const user = adminUsersData.find(u => u.id === userId);
+      if (user) {
+        user.status = user.status === "Activo" ? "Suspendido" : "Activo";
+        renderAdminUsersTable();
+        showToast(`Estado de ${user.name} actualizado a ${user.status}`);
+      }
+    }
+
+    function openNewCourseModal() {
+      document.getElementById("newCourseModal").classList.remove("hidden");
+    }
+
+    function closeNewCourseModal() {
+      document.getElementById("newCourseModal").classList.add("hidden");
+    }
+
+    async function handleCreateCourse(e) {
+      e.preventDefault();
+      const title = document.getElementById("newCourseTitle").value.trim();
+      const author = document.getElementById("newCourseAuthor").value.trim();
+      const category = document.getElementById("newCourseCategory").value;
+      const price = parseFloat(document.getElementById("newCoursePrice").value) || 14.99;
+      const oldPrice = parseFloat(document.getElementById("newCourseOldPrice").value) || 79.99;
+      const description = `Curso dictado por ${author} (${category}) en APRENDEPEE.COM.`;
+
+      // Intentar guardar en la tabla 'courses' de Supabase (columnas: title, description, price, image_url)
+      try {
+        const { data, error } = await supabase
+          .from('courses')
+          .insert([{ title, description, price, image_url: null }])
+          .select();
+
+        if (!error && data && data.length > 0) {
+          await fetchCourses();
+          renderCoursesGrid();
+          closeNewCourseModal();
+          e.target.reset();
+          showToast(`Curso "${title}" guardado en Supabase y publicado`);
+          return;
+        }
+      } catch (err) {
+        console.warn("No se pudo insertar en Supabase (verifica política RLS INSERT):", err);
+      }
+
+      const newCourse = {
+        id: Date.now(),
+        title,
+        author,
+        category,
+        rating: 5.0,
+        reviews: 1,
+        price,
+        oldPrice,
+        bestseller: true,
+        badgeColor: "from-purple-700 to-fuchsia-800",
+        icon: "fa-bolt",
+        description
+      };
+
+      coursesData.unshift(newCourse);
+      renderCoursesGrid();
+      closeNewCourseModal();
+      e.target.reset();
+      showToast(`Curso "${title}" publicado exitosamente en el catálogo`);
+    }
+
+    // Modales informativos de Membresía y Login/Registro
+    function openMembershipModal() {
+      openCustomInfoModal(
+        "Membresía Pro • Acceso Total",
+        `
+          <div class="space-y-4">
+            <div class="bg-purple-50 border border-purple-200 p-4 rounded">
+              <span class="text-[11px] font-extrabold uppercase text-udemy-purple">Prueba Gratis por 7 Días</span>
+              <p class="text-2xl font-extrabold text-udemy-dark mt-1">$19.99 <span class="text-xs font-normal text-gray-500">/ mes después del periodo de prueba</span></p>
+            </div>
+            <ul class="space-y-2 text-xs text-gray-700">
+              <li><i class="fa-solid fa-check text-green-600 mr-2"></i>Acceso ilimitado a todos los cursos de Power BI, Excel y SQL.</li>
+              <li><i class="fa-solid fa-check text-green-600 mr-2"></i>Descarga de plantillas financieras y archivos .pbix.</li>
+              <li><i class="fa-solid fa-check text-green-600 mr-2"></i>Certificados verificables al completar cada ruta.</li>
+            </ul>
+            <button
+              onclick="closeInfoModal(); showToast('¡Prueba gratuita de 7 días activada!');"
+              class="w-full py-3 bg-udemy-purple hover:bg-udemy-purpleHover text-white font-extrabold text-sm shadow"
+            >
+              Comenzar mis 7 días gratis ahora
+            </button>
+          </div>
+        `
+      );
+    }
+
+    function openAuthModal(type) {
+      const isLogin = type === "login";
+      openCustomInfoModal(
+        isLogin ? "Iniciar Sesión en APRENDEPEE.COM" : "Crea tu cuenta gratis",
+        `
+          <form onsubmit="handleAuth(event, '${type}')" class="space-y-3">
+            ${!isLogin ? `
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Nombre completo</label>
+                <input id="authName" name="name" type="text" required placeholder="Tu nombre" class="w-full px-3 py-2 border border-gray-300 text-sm" />
+              </div>
+            ` : ''}
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Correo electrónico</label>
+              <input id="authEmail" name="email" type="email" required placeholder="alumno@aprendepee.com" class="w-full px-3 py-2 border border-gray-300 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Contraseña</label>
+              <input id="authPassword" name="password" type="password" required placeholder="••••••••" class="w-full px-3 py-2 border border-gray-300 text-sm" />
+            </div>
+            <button type="submit" class="w-full py-3 bg-udemy-purple hover:bg-udemy-purpleHover text-white font-extrabold text-sm">
+              ${isLogin ? "Entrar a mi cuenta" : "Registrarme ahora"}
+            </button>
+          </form>
+        `
+      );
+    }
+
+    async function handleAuth(event, type) {
+      event.preventDefault();
+      const form = event.target;
+      const email = form.querySelector('#authEmail').value.trim();
+      const password = form.querySelector('#authPassword').value;
+
+      try {
+        if (type === 'register') {
+          const { data, error } = await supabase.auth.signUp({ email, password });
+          if (error) {
+            showToast(`Error al registrarse: ${error.message}`);
+            return;
+          }
+          showToast("¡Registro exitoso! Revisa tu correo o inicia sesión.");
+          closeInfoModal();
+        } else if (type === 'login') {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) {
+            showToast(`Error al iniciar sesión: ${error.message}`);
+            return;
+          }
+          showToast("Sesión iniciada correctamente");
+          closeInfoModal();
+        }
+      } catch (err) {
+        console.error("Error de autenticación con Supabase:", err);
+        showToast("Ocurrió un error al conectar con el servidor de autenticación");
+      }
+    }
+
+    function openCustomInfoModal(title, htmlContent) {
+      document.getElementById("infoModalTitle").textContent = title;
+      document.getElementById("infoModalBody").innerHTML = htmlContent;
+      document.getElementById("infoModal").classList.remove("hidden");
+    }
+
+    function closeInfoModal() {
+      document.getElementById("infoModal").classList.add("hidden");
+    }
+
+    // Toast Notification
+    let toastTimeout = null;
+    function showToast(message) {
+      const toast = document.getElementById("toastNotification");
+      const msg = document.getElementById("toastMessage");
+      msg.textContent = message;
+      toast.classList.remove("hidden");
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 3200);
+    }
+  </script>
+</body>
+
+</html>
